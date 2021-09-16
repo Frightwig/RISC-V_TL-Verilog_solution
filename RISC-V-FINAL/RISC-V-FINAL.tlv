@@ -31,10 +31,10 @@
    m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
    m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
    m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
-   m4_asm(SW, r0, r10, 10000)
-   m4_asm(LW, r17, r0, 10000)//Modify the test program to store the final result value to byte address 16, then load it into x17.
+   m4_asm(SW, r0, r10, 10000)           //将r10的计算结果放入datamemory中。datamemory的地址为r0+10000
+   m4_asm(LW, r17, r0, 10000)           //将datamemory的值读入r17寄存器中。datamemory的地址为r0+10000
    // Optional:
-   m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
+   m4_asm(JAL, r7, 00000000000000000000) //完成后程序跳转到开始进行循环，地址为立即数，且将其存放在r7中
    m4_define_hier(['M4_IMEM'], M4_NUM_INSTRS)
 
    |cpu
@@ -214,8 +214,10 @@
 
 
       //@4 访存，向datamemory发出命令及给出地址
+      //从datamemory 中load 数据时，用rs1+IMM作为datamemory数据的地址。rd作为目标寄存器数
+      //向datamemory store数据时，rs2作为源寄存器，rs1+ imm作为存入datamemory的地址。
       @4
-         $dmem_wr_en = $is_s_instr && $valid ;      //存储器写使能。只有发生store指令且，前两周期没有分支和load才向其写数据
+         $dmem_wr_en = $is_s_instr && $valid ;      //存储器写使能。只有发生store指令，且处在有效阶段时才向datamemory写
          $dmem_rd_en = $is_load ;                   //存储器读使能
          $dmem_addr[3:0] = $result[5:2];            //存储器地址
          $dmem_wr_data[31:0] = $src2_value;         //将src2的值作为store的值
